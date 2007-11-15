@@ -28,6 +28,40 @@ PHP are not strongly typed programming language, and when we are using GWTPHP on
 In typical GWT remote call we have following scenario:
 
   # GWT serialize data needed to call server. (GWTRPC serialized data contains)
-  # GWTPHP deserialize data :) let say that GWT call login method of pl.rmalinowski.gwtphp.helloworld.client.MainService.
+
+  # GWTPHP deserialize data :) let say that GWT is trying to call login method of pl.rmalinowski.gwtphp.helloworld.client.MainService.
+
   # GWTPHP look for MainService.gwtphpmap.inc.php file in 'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client' folder. If not found ClassMapNotFoundException thrown. If found will look into file and try to find description for type: 'pl.rmalinowski.gwtphp.helloworld.client.MainService'. 
 MainService.gwtphpmap.inc.php file could look like this:
+{{{ 
+<?php
+$gwtphpmap = array (   
+   array( 
+      'className' => 'pl.rmalinowski.gwtphp.helloworld.client.MainService' , //Java 
+      'mappedBy' => 'pl.rmalinowski.gwtphp.helloworld.client.MainService' , // PHP   
+      'methods' => array (
+         array(
+            'name' => 'login',
+            'mappedName'=>'login',
+            'returnType' =>  'pl.rmalinowski.gwtphp.helloworld.client.dto.User',
+            'params' => array(
+               array(
+                  'type'=>'java.lang.String'
+               ) ,
+               array(
+                  'type'=>'java.lang.String'
+               ) 
+            ) ,
+            'throws' => array(   
+               array(
+                  'type'=>'pl.rmalinowski.gwtphp.helloworld.client.dto.AuthorizationException'
+               ) 
+            )
+
+      //(...) cut for clarity 
+
+         )
+   );
+
+?>
+}}}
