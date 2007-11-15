@@ -27,11 +27,11 @@ PHP are not strongly typed programming language, and when we are using GWTPHP on
 
 In typical GWT remote call we have following scenario:
 
-  # GWT serialize data needed to call server. (GWTRPC serialized data contains)
+  *Step 1.* GWT serialize data needed to call server. (GWTRPC serialized data contains)
 
-  # GWTPHP deserialize data :) let say that GWT is trying to call login method of pl.rmalinowski.gwtphp.helloworld.client.MainService.
+  *Step 2.* GWTPHP deserialize data :) let say that GWT is trying to call login method of pl.rmalinowski.gwtphp.helloworld.client.MainService.
 
-  # GWTPHP look for MainService.gwtphpmap.inc.php file in 'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client' folder. If not found ClassMapNotFoundException thrown. If found will look into file and try to find description for type: 'pl.rmalinowski.gwtphp.helloworld.client.MainService'. 
+  *Step 3.* GWTPHP look for MainService.gwtphpmap.inc.php file in 'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client' folder. If not found ClassMapNotFoundException thrown. If found will look into file and try to find description for type: 'pl.rmalinowski.gwtphp.helloworld.client.MainService'. 
 MainService.gwtphpmap.inc.php file could look like this:
 {{{ 
 <?php
@@ -65,3 +65,74 @@ $gwtphpmap = array (
 
 ?>
 }}}
+
+  *Step 4.* GWTPHP found  className and  mappedBy values and now will look for  'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client/MainService.class.php' file wher should be an implementation of   MainService class. If not found ClassNotFoundException thrown. 
+MainService.class.php file could look like this:
+{{{
+<?php
+require_once(dirname(__FILE__).'/dto/User.class.php');
+require_once(dirname(__FILE__).'/dto/AuthorizationException.class.php');
+class MainService {
+			
+	public function login($login, $passwd) {
+		if ($login == $passwd && $login == 'gwtphp') {
+			$user = new User();
+			$user->setId(123);
+			$user->setLogin("gwtphp");
+			$user->setName("Rafal Malinowski");
+			//$user->setBirthdate((microtime ( true ))*1000);
+			$user->setBirthdate((mktime (11,23,34,4,27,1996,0))*1000);
+			return $user;
+		}
+		else 
+		throw new AuthorizationException("Login or password not correct! Try gwtphp :)");
+		
+	}
+
+//(...) cut for clarity 
+		
+}
+
+?>
+}}}
+  *Step 5.* GWTPHP using  gwtphpmap will try to find appropriate method to invoke. If not found NoSuchMethodException thrown. If found will invoke and serialize result. Serialization is possible because of  returnType information occurred in gwtphpmap ('returnType' =>  'pl.rmalinowski.gwtphp.helloworld.client.dto.User') 
+
+  *Step 6.* While process of serialization User class, GWTPHP will look for  User.gwtphpmap.inc.php file in folder  'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client/dto'. This file could look like this:
+{{{
+<?php
+
+$gwtphpmap = array( 
+				'className' => 'pl.rmalinowski.gwtphp.helloworld.client.dto.User' ,
+				'mappedBy' => 'pl.rmalinowski.gwtphp.helloworld.client.dto.User' ,
+				'typeCRC' => '1390835995',
+				'fields' => array (
+								array (
+									'name' => 'id',
+									'type'=>'I',								
+								),
+								array (
+									'name' => 'name',
+									'type'=>'java.lang.String',								
+								),
+								array (
+									'name' => 'login',
+									'type'=>'java.lang.String',								
+								),
+								array (
+									'name' => 'birthdate',
+									'type'=>'java.util.Date',								
+								)
+				
+				
+						)	 
+				
+			);
+
+?>
+}}}
+  *Step 7.* Serialization of instance of User class is possible because of typeCRC information occurred in gwtphpmap ('typeCRC' => '1390835995'), and because gwtphpmap specify completely list of serializable fields in User class. Note that User serializable fields  must have exactly the same names in PHP class and Java class, and number of fields must equals. If not you will have SerializationException after remote procedure call. 
+
+  *Step 8.* GWTPHP return to GWT serialized response. 
+
+  *Step 9.* and next are like in typical GWT async service call scenario. 
+
