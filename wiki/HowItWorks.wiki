@@ -5,8 +5,7 @@ Sources for this example are here [http://sourceforge.net/project/showfiles.php?
 
 == Serialization of remote calls in GWT way ==
 
-Before we start I will shortly write about GWT remote procedures call (RPC) serialization. 
-When you try to call remote procedure from GWT application, GWT serialize information about it and send it to server. 
+Before we start I will shortly write about GWT remote procedures call (RPC) serialization. When you try to call remote procedure from GWT application, GWT serialize information about it and send it to server. 
 
 GWTRPC serialized data contains:
   * service interface name e.g.: pl.rmalinowski.gwtphp.helloworld.client.MainService
@@ -15,8 +14,20 @@ GWTRPC serialized data contains:
   * class serialization signatures e.g.:for java.util.Date class are 1659716317 
 
 More about class serialization signatures:
-Each class used in serialized call, has to have serialization signature, which ensure that both of client and server works on instances of the same class. (for example ). When we change class definition the serialization signature will change too. Signature value are computed in compilation time of GWT application for each class which implements IsSerializable (and now Serializable) interface. If we compile GWT application and after that change class definition on server side and compile server application, we will have two different signature values for one class. In that case if we call remote procedure GWT application will throw SerializationException. This topic is important because in GWTPHP you must yourself set appropriate  serialization signatures for your classes. (How to do this I will describe later)
+
+ Each class used in serialized call, has to have serialization signature, which ensure that both of client and server works on instances of the same class. (for example ). When we change class definition the serialization signature will change too. Signature value are computed in compilation time of GWT application for each class which implements IsSerializable (and now Serializable) interface. If we compile GWT application and after that change class definition on server side and compile server application, we will have two different signature values for one class. In that case if we call remote procedure GWT application will throw SerializationException. This topic is important because in GWTPHP you must yourself set appropriate  serialization signatures for your classes. (How to do this I will describe later)
 
 
 == PHP to Java mapping ==
+
 PHP are not strongly typed programming language, and when we are using GWTPHP on server side of your application, you must prepare some additional information for GWTPHP. This information will tell GWTPHP how to map Java classes to PHP classes, Java primitive values to PHP primitive values and so on. Thanks to this map GWTPHP will be able to find which services and which method should call on RPC message receive and we will able to sets serialization signatures for our custom classes.
+
+
+== Typical GWT RPC scenario ==
+
+In typical GWT remote call we have following scenario:
+
+  # GWT serialize data needed to call server. (GWTRPC serialized data contains)
+  # GWTPHP deserialize data :) let say that GWT call login method of pl.rmalinowski.gwtphp.helloworld.client.MainService.
+  # GWTPHP look for MainService.gwtphpmap.inc.php file in 'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client' folder. If not found ClassMapNotFoundException thrown. If found will look into file and try to find description for type: 'pl.rmalinowski.gwtphp.helloworld.client.MainService'. 
+MainService.gwtphpmap.inc.php file could look like this:
