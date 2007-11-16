@@ -15,24 +15,26 @@ GWTRPC serialized data contains:
 
 More about class serialization signatures:
 
- Each class used in serialized call, has to have serialization signature, which ensure that both of client and server works on instances of the same class. (for example ). When we change class definition the serialization signature will change too. Signature value are computed in compilation time of GWT application for each class which implements IsSerializable (and now Serializable) interface. If we compile GWT application and after that change class definition on server side and compile server application, we will have two different signature values for one class. In that case if we call remote procedure GWT application will throw SerializationException. This topic is important because in GWTPHP you must yourself set appropriate  serialization signatures for your classes. (How to do this I will describe later)
+ Each class used in serialized call, has to have serialization signature, which ensure that both of client and server works on instances of the same class. (for example ). When we change class definition the serialization signature will change too. Signature value are computed by GWT compiler in compilation time of your application for each of class that implements IsSerializable (and now Serializable) interface. If we have compiled GWT application and after that change class definition on server side and we compile only server application, we will have two different signatures for one class. In that case if we call remote procedure from GWT application it will throw SerializationException. This topic is important because GWTPHP cannot compute serialization signature, and you must yourself set appropriate serialization signatures for your classes. (How to do this I will describe later)
 
 
 == PHP to Java mapping ==
 
-PHP are not strongly typed programming language, and when we are using GWTPHP on server side of your application, you must prepare some additional information for GWTPHP. This information will tell GWTPHP how to map Java classes to PHP classes, Java primitive values to PHP primitive values and so on. Thanks to this map GWTPHP will be able to find which services and which method should call on RPC message receive and we will able to sets serialization signatures for our custom classes.
+PHP are not strongly typed programming language, and when we are using GWTPHP on server side of your application, you must prepare some additional information for GWTPHP. This information will tell GWTPHP how to convert Java classes to PHP classes, Java primitive values to PHP primitive values and so on. We will create gwtphpmap file for each of your classes that you wont to share with GWT application. Thanks to this map GWTPHP will be able to find which services and which method should call on RPC message receive and we will able to sets serialization signatures for our custom classes.
 
 
 == Typical GWT RPC scenario ==
 
-In typical GWT remote call we have following scenario:
+Now i will show what is going on when GWT call GWTPHP.
+In typical GWT remote call scenario we have following steps:
 
-*Step 1.* GWT serialize data needed to call server. (GWTRPC serialized data contains)
+*Step 1.* GWT send serialized data to server. (see previous section: _GWTRPC serialized data contains_)
 
-*Step 2.* GWTPHP deserialize data :) let say that GWT is trying to call login method of pl.rmalinowski.gwtphp.helloworld.client.MainService.
+*Step 2.* GWTPHP deserialize data :) let say that GWT is trying to call _login_ method of _pl.rmalinowski.gwtphp.helloworld.client.MainService_.
 
-*Step 3.* GWTPHP look for MainService.gwtphpmap.inc.php file in 'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client' folder. If not found ClassMapNotFoundException thrown. If found will look into file and try to find description for type: 'pl.rmalinowski.gwtphp.helloworld.client.MainService'. 
-MainService.gwtphpmap.inc.php file could look like this:
+*Step 3.* GWTPHP look for _MainService.gwtphpmap.inc.php_ file in _gwt-maps/pl/rmalinowski/gwtphp/helloworld/client_ folder. If not found _ClassMapNotFoundException_ will thrown. If found will look into file and try to find description for type: _pl.rmalinowski.gwtphp.helloworld.client.MainService_. 
+
+_MainService.gwtphpmap.inc.php_ file could look like this:
 {{{ 
 <?php
 $gwtphpmap = array (   
@@ -66,8 +68,9 @@ $gwtphpmap = array (
 ?>
 }}}
 
-*Step 4.* GWTPHP found  className and  mappedBy values and now will look for  'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client/MainService.class.php' file wher should be an implementation of   MainService class. If not found ClassNotFoundException thrown. 
-MainService.class.php file could look like this:
+*Step 4.* GWTPHP found  className and mappedBy values in array and now will look for  _gwt-maps/pl/rmalinowski/gwtphp/helloworld/client/MainService.class.php_ file where should be an implementation of _MainService_ class. If not found _ClassNotFoundException_ will thrown. 
+
+_MainService.class.php_ file could look like this:
 {{{
 <?php
 require_once(dirname(__FILE__).'/dto/User.class.php');
@@ -95,9 +98,11 @@ class MainService {
 
 ?>
 }}}
-*Step 5.* GWTPHP using  gwtphpmap will try to find appropriate method to invoke. If not found NoSuchMethodException thrown. If found will invoke and serialize result. Serialization is possible because of  returnType information occurred in gwtphpmap ('returnType' =>  'pl.rmalinowski.gwtphp.helloworld.client.dto.User') 
+*Step 5.* GWTPHP using  gwtphpmap will try to find appropriate method to invoke. If not found _NoSuchMethodException_ will thrown. If found will invoke and serialize result. Serialization is possible because of returnType information occurred in gwtphpmap array (_'returnType' =>  'pl.rmalinowski.gwtphp.helloworld.client.dto.User'_) 
 
-*Step 6.* While process of serialization User class, GWTPHP will look for  User.gwtphpmap.inc.php file in folder  'gwt-maps/pl/rmalinowski/gwtphp/helloworld/client/dto'. This file could look like this:
+*Step 6.* While process of serialization _User_ class, GWTPHP will look for  _User.gwtphpmap.inc.php_ file in folder  _gwt-maps/pl/rmalinowski/gwtphp/helloworld/client/dto_. 
+
+_User.gwtphpmap.inc.php_ file could look like this:
 {{{
 <?php
 
@@ -129,9 +134,8 @@ $gwtphpmap = array(
 
 ?>
 }}}
-*Step 7.* Serialization of instance of User class is possible because of typeCRC information occurred in gwtphpmap ('typeCRC' => '1390835995'), and because gwtphpmap specify completely list of serializable fields in User class. Note that User serializable fields  must have exactly the same names in PHP class and Java class, and number of fields must equals. If not you will have SerializationException after remote procedure call. 
+*Step 7.* Serialization of instance of User class is possible because of _typeCRC_ information occurred in gwtphpmap ('typeCRC' => '1390835995'), and because gwtphpmap specify completely list of serializable fields in User class. Note that User serializable fields  must have exactly the same names in PHP class and Java class, and number of fields must equals. If not you will have SerializationException after remote procedure call. 
 
 *Step 8.* GWTPHP return to GWT serialized response. 
 
 Next steps are like in typical GWT async service call scenario. 
-
