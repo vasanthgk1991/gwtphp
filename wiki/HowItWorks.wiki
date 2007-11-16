@@ -140,6 +140,3 @@ $gwtphpmap = array(
 *Step 8.* GWTPHP return to GWT serialized response. 
 
 Next steps are like in typical GWT async service call scenario. 
-
-
-[http://gwtphp.googlecode.com/files/sflogo.png]
