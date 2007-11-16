@@ -3,7 +3,6 @@
 
 Sources for this example are here [http://sourceforge.net/project/showfiles.php?group_id=207256 GWTPHP-Helloworld]. 
 
-[http://gwtphp.googlecode.com/files/sflogo.png]
 
 == Serialization of remote calls in GWT way ==
 
@@ -141,3 +140,6 @@ $gwtphpmap = array(
 *Step 8.* GWTPHP return to GWT serialized response. 
 
 Next steps are like in typical GWT async service call scenario. 
+
+
+[http://gwtphp.googlecode.com/files/sflogo.png]
