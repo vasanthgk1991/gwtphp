@@ -1,6 +1,8 @@
 #labels Featured
 Important note: This concept are applicable to new version of GWTPHP 1.0 which are still under development and which are not accessible for now. 
 
+http://gwtphp.googlecode.com/files/gwtphp-basic-flow-and-components-diagram.png
+
 Image 1. describes basic concept of GWTPHP work flow . All of steps described below are fully automatic. So don't worry about complexity, you need to know only basic of concept to better understand what is going on under the hood. 
 
 
